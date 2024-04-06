@@ -64,10 +64,11 @@
   (pcase emacs-everywhere--display-server
     ('quartz (list "osascript" "-e" "tell application \"System Events\" to keystroke \"v\" using command down"))
     ('x11 (list "xdotool" "key" "--clearmodifiers" "Shift+Insert"))
+    ('wayland (list "kdotool" "key" "Shift+Insert")) ;no --clearmodifiers, can I just use wl-paste?
     ('windows
      (list "powershell" "-NoProfile" "-Command"
            "& {(New-Object -ComObject wscript.shell).SendKeys(\"^v\")}"))
-    ((or 'wayland 'unknown)
+    ((or 'unknown)
      (list "notify-send"
            "No paste command defined for emacs-everywhere"
            "-a" "Emacs" "-i" "emacs")))
@@ -102,6 +103,7 @@ it worked can be a good idea."
   (pcase emacs-everywhere--display-server
     ('quartz (list "osascript" "-e" "tell application \"%w\" to activate"))
     ('x11 (list "xdotool" "windowactivate" "--sync" "%w"))
+    ('wayland (list "kdotool" "windowactivate" "%w")) ;no --sync
     ('windows (list "powershell" "-NoProfile" "-command"
                     "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }")))
   "Command to refocus the active window when emacs-everywhere was triggered.
@@ -445,7 +447,9 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
 
 (defun emacs-everywhere--app-info-linux ()
   "Return information on the active window, on linux."
-  (let ((window-id (emacs-everywhere--call "xdotool" "getactivewindow")))
+  (let ((window-id (pcase emacs-everywhere--display-server 
+            ('x11 (emacs-everywhere-call "xdotool" "getactivewindow"))
+            ('wayland (emacs-everywhere-call "kdotool" "getactivewindow")))))
     (let ((app-name
            (car (split-string-and-unquote
                  (string-trim-left
@@ -693,7 +697,7 @@ Should end in a newline to avoid interfering with the buffer content."
                  (cons "copy" emacs-everywhere-copy-command)
                  (cons "focus window" emacs-everywhere-window-focus-command)
                  (list "pandoc conversion" "pandoc")
-                 (and (memq emacs-everywhere--display-server '(x11 wayland))
+                 (and (memq emacs-everywhere--display-server '(x11 wayland)) ;should update this later
                       (list "app info" "xdotool"))
                  (and (memq emacs-everywhere--display-server '(x11 wayland))
                       (list "app info" "xprop"))
