@@ -453,12 +453,14 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
     (let ((app-name
            (car (split-string-and-unquote
                  (string-trim-left
-                  (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS")
+                  (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS")) ;unsure what "WM_CLASS" is for
+                                   ('wayland (emacs-everywhere--call "kdotool" "-id" window-id "WM_CLASS")))
                   "[^ ]+ = \"[^\"]+\", "))))
           (window-title
            (car (split-string-and-unquote
                  (string-trim-left
-                  (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME")
+                  (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME"))
+                                   ('wayland (emacs-everywhere--call "kdotool" "-id" window-id "_NET_WM_NAME")))
                   "[^ ]+ = "))))
           (window-geometry
            (let ((info (mapcar (lambda (line)
