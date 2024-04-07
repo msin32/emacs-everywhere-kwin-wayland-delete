@@ -451,32 +451,37 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
             ('x11 (emacs-everywhere--call "xdotool" "getactivewindow"))
             ('wayland (emacs-everywhere--call "kdotool" "getactivewindow")))))
     (let ((app-name
-           (pcase window-id
+           (pcase emacs-everywhere--display-server
 	     ('x11 (car (split-string-and-unquote
                  (string-trim-left
                    (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS"))
 				       "[^ ]+ = \"[^\"]+\", ")))
 	     ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname" window-id))))
           (window-title
-           (pcase window-id
+           (pcase emacs-everywhere--display-server
 	     ('x11 (car (split-string-and-unquote
                  (string-trim-left
                   (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME"))
                    "[^ ]+ = ")))
 	      ('wayland (emacs-everywhere--call "kdotool" "getwindowname" window-id))))
           (window-geometry
-           (let ((info (pcase window-id ('x11 (mapcar (lambda (line)
+           (pcase emacs-everywhere--display-server
+	     ('x11 (let ((info (mapcar (lambda (line)
                                  (split-string line ":" nil "[ \t]+"))
                                (split-string
                                 (emacs-everywhere--call "xwininfo" "-id" window-id) "\n")))
-			      ('wayland (emacs-everywhere--call "kdotool" "getwindowgeometry" "-id" window-id))))) ;needs parsing
-             (mapcar #'string-to-number
+			      ))
+               (mapcar #'string-to-number
                      (list (cadr (assoc "Absolute upper-left X" info))
                            (cadr (assoc "Absolute upper-left Y" info))
                            (cadr (assoc "Relative upper-left X" info))
                            (cadr (assoc "Relative upper-left Y" info))
                            (cadr (assoc "Width" info))
-                           (cadr (assoc "Height" info)))))))
+                           (cadr (assoc "Height" info)))))
+	     ('wayland (let ((info (mapcar (lambda (line) (split-string line ":" nil " "))
+					(split-string (cadr (split-string (emacs-everywhere--call "kdotool" "getwindowgeometry" "-id" window-id) "}\n  ")) "\n"))))
+			     (mapcar #'string-to-number (apply 'cl-concatenate 'list (list (split-string (cadr (assoc "Position" info)) ",") '("0" "0") (split-string (cadr (assoc " Geometry" info)) "x"))))))
+	     )))
       (make-emacs-everywhere-app
        :id (string-to-number window-id)
        :class app-name
