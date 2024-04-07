@@ -64,7 +64,8 @@
   (pcase emacs-everywhere--display-server
     ('quartz (list "osascript" "-e" "tell application \"System Events\" to keystroke \"v\" using command down"))
     ('x11 (list "xdotool" "key" "--clearmodifiers" "Shift+Insert"))
-    ('wayland (list "kdotool" "key" "Shift+Insert")) ;no --clearmodifiers, can I just use wl-paste?
+    ;; ('wayland (list "kdotool" "key" "Shift+Insert")) ;no --clearmodifiers, can I just use wl-paste?
+    ('wayland (list "ydotool" "key" "42:1" "110:1" "42:0" "110:0"))
     ('windows
      (list "powershell" "-NoProfile" "-Command"
            "& {(New-Object -ComObject wscript.shell).SendKeys(\"^v\")}"))
@@ -321,7 +322,8 @@ buffers.")
   "Tweak the current buffer to add some emacs-everywhere considerations."
   :init-value nil
   :lighter "EE"
-  :keymap `((,(kbd "C-c C-c") . emacs-everywhere--app-info-linux)
+  ;; :keymap `((,(kbd "C-c C-c") . emacs-everywhere--app-info-linux)
+  :keep `((,(kdb "C-c C-c") . emacs-everywhere--finish-or-ctrl-c-ctrl-c)
             (,(kbd "C-x 5 0") . emacs-everywhere-finish)
             (,(kbd "C-c C-k") . emacs-everywhere-abort))
   (when emacs-everywhere-mode
@@ -447,6 +449,7 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
 
 (defun emacs-everywhere--app-info-linux ()
   "Return information on the active window, on linux."
+  (interactive)
   (let ((window-id (pcase emacs-everywhere--display-server
             ('x11 (emacs-everywhere--call "xdotool" "getactivewindow"))
             ('wayland (emacs-everywhere--call "kdotool" "getactivewindow")))))
