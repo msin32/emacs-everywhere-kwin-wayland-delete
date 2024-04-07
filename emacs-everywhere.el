@@ -447,27 +447,29 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
 
 (defun emacs-everywhere--app-info-linux ()
   "Return information on the active window, on linux."
-  (let ((window-id (pcase emacs-everywhere--display-server 
-            ('x11 (emacs-everywhere-call "xdotool" "getactivewindow"))
-            ('wayland (emacs-everywhere-call "kdotool" "getactivewindow")))))
+  (let ((window-id (pcase emacs-everywhere--display-server
+            ('x11 (emacs-everywhere--call "xdotool" "getactivewindow"))
+            ('wayland (emacs-everywhere--call "kdotool" "getactivewindow")))))
     (let ((app-name
-           (car (split-string-and-unquote
+           (pcase window-id
+	     ('x11 (car (split-string-and-unquote
                  (string-trim-left
-                  (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS")) 
-                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname"  (concat "{" window-id "}") "WM_CLASS"))) ;needs parsing
-                  "[^ ]+ = \"[^\"]+\", "))))
+                   (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS"))
+				       "[^ ]+ = \"[^\"]+\", ")))
+	     ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname" window-id))))
           (window-title
-           (car (split-string-and-unquote
+           (pcase window-id
+	     ('x11 (car (split-string-and-unquote
                  (string-trim-left
-                  (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME"))
-                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowname" (concat "{" window-id "}") "_NET_WM_NAME"))) ;needs parsing
-                  "[^ ]+ = "))))
+                  (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME"))
+                   "[^ ]+ = ")))
+	      ('wayland (emacs-everywhere--call "kdotool" "getwindowname" window-id))))
           (window-geometry
-           (let ((info (mapcar (lambda (line)
+           (let ((info (pcase window-id ('x11 (mapcar (lambda (line)
                                  (split-string line ":" nil "[ \t]+"))
                                (split-string
-                                (pcase window-id ('x11 (emacs-everywhere--call "xwininfo" "-id" window-id))
-                                                 ('wayland (emacs-everywhere--call "kdotool" "getwindowgeometry" "-id" window-id))) "\n"))))
+                                (emacs-everywhere--call "xwininfo" "-id" window-id) "\n")))
+			      ('wayland (emacs-everywhere--call "kdotool" "getwindowgeometry" "-id" window-id))))) ;needs parsing
              (mapcar #'string-to-number
                      (list (cadr (assoc "Absolute upper-left X" info))
                            (cadr (assoc "Absolute upper-left Y" info))
