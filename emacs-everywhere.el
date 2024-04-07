@@ -454,7 +454,7 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
            (car (split-string-and-unquote
                  (string-trim-left
                   (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS")) 
-                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname"  "{"window-id"}" "WM_CLASS"))) ;needs parsing
+                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname"  (concat "{" window-id "}") "WM_CLASS"))) ;needs parsing
                   "[^ ]+ = \"[^\"]+\", "))))
           (window-title
            (car (split-string-and-unquote
