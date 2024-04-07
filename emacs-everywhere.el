@@ -469,19 +469,17 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
 	     ('x11 (let ((info (mapcar (lambda (line)
                                  (split-string line ":" nil "[ \t]+"))
                                (split-string
-                                (emacs-everywhere--call "xwininfo" "-id" window-id) "\n")))
-			      ))
+                                (emacs-everywhere--call "xwininfo" "-id" window-id) "\n"))))
                (mapcar #'string-to-number
                      (list (cadr (assoc "Absolute upper-left X" info))
                            (cadr (assoc "Absolute upper-left Y" info))
                            (cadr (assoc "Relative upper-left X" info))
                            (cadr (assoc "Relative upper-left Y" info))
                            (cadr (assoc "Width" info))
-                           (cadr (assoc "Height" info)))))
+                           (cadr (assoc "Height" info))))))
 	     ('wayland (let ((info (mapcar (lambda (line) (split-string line ":" nil " "))
-					(split-string (cadr (split-string (emacs-everywhere--call "kdotool" "getwindowgeometry" "-id" window-id) "}\n  ")) "\n"))))
-			     (mapcar #'string-to-number (apply 'cl-concatenate 'list (list (split-string (cadr (assoc "Position" info)) ",") '("0" "0") (split-string (cadr (assoc " Geometry" info)) "x"))))))
-	     )))
+					(split-string (cadr (split-string (emacs-everywhere--call "kdotool" "getwindowgeometry" window-id) "}\n  ")) "\n"))))
+			 (mapcar #'string-to-number (apply 'cl-concatenate 'list (list (split-string (cadr (assoc "Position" info)) ",") '("0" "0") (split-string (cadr (assoc " Geometry" info)) "x")))))))))
       (make-emacs-everywhere-app
        :id (string-to-number window-id)
        :class app-name
