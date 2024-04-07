@@ -460,7 +460,7 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
            (car (split-string-and-unquote
                  (string-trim-left
                   (pcase window-id ('x11 (emacs-everywhere--call "xprop" "-id" window-id "_NET_WM_NAME"))
-                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowid" "-id" window-id "_NET_WM_NAME"))) ;unsure what is for
+                                   ('wayland (emacs-everywhere--call "kdotool" "getwindowname" (concat "{" window-id "}") "_NET_WM_NAME"))) ;needs parsing
                   "[^ ]+ = "))))
           (window-geometry
            (let ((info (mapcar (lambda (line)
