@@ -484,7 +484,7 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
 					(split-string (cadr (split-string (emacs-everywhere--call "kdotool" "getwindowgeometry" window-id) "}\n  ")) "\n"))))
 			 (mapcar #'string-to-number (apply 'cl-concatenate 'list (list (split-string (cadr (assoc "Position" info)) ",") '("0" "0") (split-string (cadr (assoc " Geometry" info)) "x")))))))))
       (make-emacs-everywhere-app
-       :id (string-to-number window-id)
+       :id window-id
        :class app-name
        :title window-title
        :geometry (list
