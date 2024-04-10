@@ -459,7 +459,7 @@ Please go to 'System Preferences > Security & Privacy > Privacy > Accessibility'
                  (string-trim-left
                    (emacs-everywhere--call "xprop" "-id" window-id "WM_CLASS"))
 				       "[^ ]+ = \"[^\"]+\", ")))
-	     ('wayland (emacs-everywhere--call "kdotool" "getwindowclassname" window-id))))
+	     ('wayland (car (last (split-string (emacs-everywhere--call "kdotool" "getwindowclassname" window-id) "\\."))))))
           (window-title
            (pcase emacs-everywhere--display-server
 	     ('x11 (car (split-string-and-unquote
