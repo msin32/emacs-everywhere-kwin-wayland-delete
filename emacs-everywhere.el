@@ -64,7 +64,6 @@
   (pcase emacs-everywhere--display-server
     ('quartz (list "osascript" "-e" "tell application \"System Events\" to keystroke \"v\" using command down"))
     ('x11 (list "xdotool" "key" "--clearmodifiers" "Shift+Insert"))
-    ;; ('wayland (list "kdotool" "key" "Shift+Insert")) ;no --clearmodifiers, can I just use wl-paste?
     ('wayland (list "ydotool" "key" "42:1" "110:1" "42:0" "110:0"))
     ('windows
      (list "powershell" "-NoProfile" "-Command"
@@ -104,7 +103,7 @@ it worked can be a good idea."
   (pcase emacs-everywhere--display-server
     ('quartz (list "osascript" "-e" "tell application \"%w\" to activate"))
     ('x11 (list "xdotool" "windowactivate" "--sync" "%w"))
-    ('wayland (list "kdotool" "windowactivate" "%w")) ;no --sync
+    ('wayland (list "kdotool" "windowactivate" "%w")) ; No --sync
     ('windows (list "powershell" "-NoProfile" "-command"
                     "& {Add-Type 'using System; using System.Runtime.InteropServices; public class Tricks { [DllImport(\"user32.dll\")] public static extern bool SetForegroundWindow(IntPtr hWnd); }'; [tricks]::SetForegroundWindow(%w) }")))
   "Command to refocus the active window when emacs-everywhere was triggered.
